@@ -5,6 +5,7 @@ import time
 import datetime
 import logging
 import re
+import json
 
 from book_tools.format import create_bookfile
 from book_tools.format.util import strip_symbols
@@ -22,6 +23,24 @@ class opdsScanner:
     def __init__(self, logger=None):
         self.fb2parser=None
         self.init_parser()
+        
+        self.fullang = None
+        try:
+            # open file with language dictionary. Missing languages cann be add manualy
+            with open(config.SOPDS_ROOT_LIB+"/Languages.txt","r") as f:
+                data = f.read()
+            self.fullang = json.loads(data)
+        except FileNotFoundError as e:
+            # standard set of languages, some may be missing.
+            self.fullang = {"RU":"Русский","EN":"Английский","BG":"Болгарский","UK":"Украинский","ES":"Испанский","FR":"Французский",
+                "PL":"Польский","BE":"Белорусский","DE":"Немецкий","IT":"Итальянский","LV":"Латвийский","EO":"Эсперанто","CS":"Чешский",
+                "NL":"Нидерландский","PT":"Португальский","HU":"Венгерский","RO":"Румынский","LT":"Литовский","EL":"Греческий",
+                "SR":"Сербский","ZH":"Китайский","SK":"Словацкий","SV":"Шведский","IO":"Идо","LA":"Латинский","TR":"Турецкий",
+                "AZ":"Азербайджанский","KK":"Казахский","UZ":"Узбекский","CU":"Церк. Славянский","HYE":"Армянский","VI":"Вьетнамский",
+                "FI":"Финский","DA":"Датский","CV":"Чувашский","NO":"Норвежский","ID":"Индонезийский","EN-US":"Амер. английский",
+                "IS":"Исландский","TT":"Татарский","JA":"Японский","BA":"Башкирский","HR":"Хорватский","KA":"Грузинский","GA":"Ирландский",
+                "HE":"Иврит","NE":"Непальский","MK":"Македонский","ET":"Эстонский","SAH":"Якутский","IE":"Окциденталь","KO":"Корейский",
+                "TG":"Таджикский","CA":"Каталанский"}
 
         if logger:
             self.logger = logger
@@ -132,11 +151,45 @@ class opdsScanner:
     def inpx_callback(self, inpx, inp, meta_data):          
                  
         name = "%s.%s"%(meta_data[inpx_parser.sFile],meta_data[inpx_parser.sExt])
+        # Get book annotation from fb2 file stored in zip-file
+        file = config.SOPDS_ROOT_LIB+'/'+inp+'.zip'
+        annotation=''
+
+        try:
+            z = zipfile.ZipFile(file, 'r', allowZip64=True)
+            bookfile = z.open(name)
+
+            try:
+                book_data = create_bookfile(bookfile, name)
+            except Exception as err:
+                book_data = None
+                self.logger.warning(name + ' Book parse error, skipping... (Error: %s)'%err)
+
+            if book_data:
+                annotation = book_data.description if book_data.description else ''
+                annotation = annotation.strip(strip_symbols) if isinstance(annotation, str) else annotation.decode('utf8').strip(strip_symbols)
+
+            bookfile.close()
+            z.close()
+        except zipfile.BadZipFile:
+            self.logger.warning('Error while read ZIP archive. File '+file+' corrupt.')
         
         lang=meta_data[inpx_parser.sLang].strip(strip_symbols)
+        # get the language fullname, otherwise ISO-639-1 shortname
+        lang = self.fullang.get(lang.upper(),lang)
         title=meta_data[inpx_parser.sTitle].strip(strip_symbols)
-        annotation=''
         docdate=meta_data[inpx_parser.sDate].strip(strip_symbols)
+        # Find out series number 
+        if meta_data[inpx_parser.sSerNo]:
+            serno = meta_data[inpx_parser.sSerNo]
+#        serno=int(serno.strip())
+            try:
+        	    serno=int(re.sub(' ','',serno))
+            except Exception as err:
+        	    serno = 0
+        	    self.logger.warning(name + ' Seriennumber parse error. (Error: %s)'%err)
+        else:
+            serno = 0
 
         rel_path_current = os.path.join(self.rel_path,meta_data[inpx_parser.sFolder])
 
@@ -156,7 +209,7 @@ class opdsScanner:
 
             for s in meta_data[inpx_parser.sSeries]:
                 ser=opdsdb.addseries(s.strip())
-                opdsdb.addbseries(book,ser,0)
+                opdsdb.addbseries(book,ser,serno)
                    
     def processinpx(self,name,full_path,file):
         rel_file=os.path.relpath(file,config.SOPDS_ROOT_LIB)
@@ -219,6 +272,10 @@ class opdsScanner:
 
                     if book_data:
                         lang = book_data.language_code.strip(strip_symbols) if book_data.language_code else ''
+                        # If the Languages.txt file exists
+                        if self.fullang:
+                            # get the language fullname, otherwise ISO-639-1 shortname
+                            lang = self.fullang.get(lang.upper(),lang)
                         title = book_data.title.strip(strip_symbols) if book_data.title else n
                         annotation = book_data.description if book_data.description else ''
                         annotation = annotation.strip(strip_symbols) if isinstance(annotation, str) else annotation.decode('utf8').strip(strip_symbols)
