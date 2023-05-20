@@ -11,6 +11,7 @@ VERSION = "0.47-devel"
 TITLE = getattr(settings, "SOPDS_TITLE", "HomeLib")
 SUBTITLE = getattr(settings, "SOPDS_SUBTITLE", "Домашняя библиотека Version %s."%VERSION)
 ICON = getattr(settings, "SOPDS_ICON", "/static/images/favicon.ico")
+# Book Cover Size
 THUMB_SIZE = 300
 
 loglevel = getattr(settings, "SOPDS_LOGLEVEL", "info")
