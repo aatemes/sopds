@@ -95,13 +95,13 @@ def SearchBooksView(request):
         if searchtype == 'm':
             #books = Book.objects.extra(where=["upper(title) like %s"], params=["%%%s%%"%searchterms.upper()]).order_by('title','-docdate')
             books = Book.objects.filter(search_title__contains=searchterms.upper()).order_by('search_title','-docdate')
-            args['breadcrumbs'] = [_('Books'),_('Search by title'),searchterms]
+            args['breadcrumbs'] = [_('Books'),_('Поиск по названию'),searchterms]
             args['searchobject'] = 'title'
             
         if searchtype == 'b':
             #books = Book.objects.extra(where=["upper(title) like %s"], params=["%s%%"%searchterms.upper()]).order_by('title','-docdate')
             books = Book.objects.filter(search_title__startswith=searchterms.upper()).order_by('search_title','-docdate')
-            args['breadcrumbs'] = [_('Books'),_('Search by title'),searchterms]   
+            args['breadcrumbs'] = [_('Books'),_('Поиск по названию'),searchterms]   
             args['searchobject'] = 'title'         
             
         elif searchtype == 'a':
@@ -114,7 +114,7 @@ def SearchBooksView(request):
                 author_id = 0
                 aname = ""                  
             books = Book.objects.filter(authors=author_id).order_by('search_title','-docdate')  
-            args['breadcrumbs'] = [_('Books'),_('Search by author'),aname]   
+            args['breadcrumbs'] = [_('Books'),_('Поиск по автору'),aname]   
             args['searchobject'] = 'author' 
             
         # Поиск книг по серии
@@ -127,7 +127,7 @@ def SearchBooksView(request):
                 ser = ""
             #books = Book.objects.filter(series=ser_id).order_by('search_title','-docdate')
             books = Book.objects.filter(series=ser_id).order_by('bseries__ser_no','search_title','-docdate')
-            args['breadcrumbs'] = [_('Books'),_('Search by series'),ser]
+            args['breadcrumbs'] = [_('Books'),_('Поиск по серии'),ser]
             args['searchobject'] = 'series'
             
         # Поиск книг по жанру
@@ -136,10 +136,10 @@ def SearchBooksView(request):
                 genre_id = int(searchterms)
                 section = Genre.objects.get(id=genre_id).section
                 subsection = Genre.objects.get(id=genre_id).subsection
-                args['breadcrumbs'] = [_('Books'),_('Search by genre'),section,subsection]
+                args['breadcrumbs'] = [_('Books'),_('Поиск по жанру'),section,subsection]
             except:
                 genre_id = 0
-                args['breadcrumbs'] = [_('Books'),_('Search by genre')]
+                args['breadcrumbs'] = [_('Books'),_('Поиск по жанру')]
                 
             books = Book.objects.filter(genres=genre_id).order_by('search_title','-docdate') 
             args['searchobject'] = 'genre'
@@ -204,9 +204,10 @@ def SearchBooksView(request):
         finish = op.d1_last_pos
         
         for row in books[start:finish+1]:
-            p = {'doubles':0, 'lang_code': row.lang_code, 'filename': row.filename, 'path': row.path, \
+            shortpath = row.path[row.path.rfind('/')+1:]
+            p = {'doubles':0, 'lang_code': row.lang_code, 'filename': row.filename, 'path': row.path, 'shortpath': shortpath, \
                   'registerdate': row.registerdate, 'id': row.id, 'annotation': strip_tags(row.annotation), \
-                  'docdate': row.docdate, 'format': row.format, 'title': row.title, 'filesize': row.filesize//1000,\
+                  'docdate': row.docdate, 'lang': row.lang, 'format': row.format, 'title': row.title, 'filesize': row.filesize,\
                   'authors': row.authors.values(), 'genres': row.genres.values(), 'series': row.series.values(),'ser_no': row.bseries_set.values('ser_no'),\
                   'readtime':row.bookshelf_set.filter(user=request.user).values('readtime') if config.SOPDS_AUTH else None
                  }
@@ -369,9 +370,10 @@ def CatalogsView(request):
         items.append(p)
           
     for row in books_list[op.d2_first_pos:op.d2_last_pos+1]:
-        p = {'is_catalog':0, 'lang_code': row.lang_code, 'filename': row.filename, 'path': row.path, \
+        shortpath = row.path[row.path.rfind('/')+1:]
+        p = {'is_catalog':0, 'lang_code': row.lang_code, 'filename': row.filename, 'path': row.path, 'shortpath': shortpath, \
               'registerdate': row.registerdate, 'id': row.id, 'annotation': strip_tags(row.annotation), \
-              'docdate': row.docdate, 'format': row.format, 'title': row.title, 'filesize': row.filesize//1000,\
+              'docdate': row.docdate, 'lang': row.lang, 'format': row.format, 'title': row.title, 'filesize': row.filesize, \
               'authors':row.authors.values(), 'genres':row.genres.values(), 'series':row.series.values(), 'ser_no':row.bseries_set.values('ser_no'),\
               'readtime': row.bookshelf_set.filter(user=request.user).values('readtime') if config.SOPDS_AUTH else None
              }
