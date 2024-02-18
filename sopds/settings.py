@@ -149,7 +149,7 @@ LOCALE_PATHS = (
     os.path.join(BASE_DIR, 'sopds/locale'),
 )
 
-TIME_ZONE = 'Europe/Berlin'
+TIME_ZONE = os.environ["TIME_ZONE"]
 USE_I18N = True
 USE_L10N = True
 USE_TZ = True
@@ -161,9 +161,7 @@ CACHE_MIDDLEWARE_KEY_PREFIX = "sopds"
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 STATIC_URL = '/static/'
 #STATIC_ROOT = 'static'
-# нечем отдавать статику не хочется в образ встраивать NGINX и пришлось все возложить на django
-#STATIC_ROOT = 'static'
-# вот это работает
+# Что то картинки не отдаются. Вот это работает
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
