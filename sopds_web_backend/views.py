@@ -1,3 +1,6 @@
+import os
+import codecs
+
 from random import randint
 
 from django.shortcuts import render, redirect
@@ -12,14 +15,31 @@ from django.utils.html import strip_tags
 from django.db.models import Q
 from django.http import HttpResponseForbidden
 
+from book_tools.format import create_bookfile
+import opds_catalog.zipf as zipfile
 from opds_catalog import models
 from opds_catalog.models import Book, Author, Series, bookshelf, Counter, Catalog, Genre, lang_menu
 from opds_catalog import settings
 from constance import config
 from opds_catalog.opds_paginator import Paginator as OPDS_Paginator
 
-
 from sopds_web_backend.settings import HALF_PAGES_LINKS
+
+def get_annotation(mybook):
+    full_path = os.path.join(config.SOPDS_ROOT_LIB, mybook.path)
+    # Убираем из пути INPX и INP файл
+    inp_path, zip_name = os.path.split(full_path)
+    inpx_path, inp_name = os.path.split(inp_path)
+    path, inpx_name = os.path.split(inpx_path)
+    full_path = os.path.join(path,zip_name)
+    fz = codecs.open(full_path, "rb")
+    z = zipfile.ZipFile(fz, 'r', allowZip64=True)
+    fo = z.open(mybook.filename)
+    book_data = create_bookfile(fo, mybook.filename)
+    annotation = book_data.description if book_data.description else ''
+    annotation = annotation.strip(' \'\&\n-.#\\\`') if isinstance(annotation, str) else annotation.decode('utf8').strip(' \'\&\n-.#\\\`')
+    return annotation
+
 
 def sopds_login(function=None, redirect_field_name=REDIRECT_FIELD_NAME, url=None):
     actual_decorator = user_passes_test(
@@ -64,8 +84,11 @@ def sopds_processor(request):
         except Book.DoesNotExist:
             random_book= None
     else:
-        random_book= None        
-                   
+        random_book= None
+    # Get annotation if note done yet
+    if random_book and random_book.annotation == 'NotYet':
+        random_book.annotation = get_annotation(random_book)
+        random_book.save()
     args['random_book'] = random_book
     stats = { d['name']:d['value'] for d in Counter.obj.all().values() }
     stats['lastscan_date']=Counter.objects.get_lastscan()
@@ -205,6 +228,10 @@ def SearchBooksView(request):
         
         for row in books[start:finish+1]:
             shortpath = row.path[row.path.rfind('/')+1:]
+            # Get annotation if note done yet
+            if row.annotation == 'NotYet':
+                row.annotation = get_annotation(row)
+                row.save()
             p = {'doubles':0, 'lang_code': row.lang_code, 'filename': row.filename, 'path': row.path, 'shortpath': shortpath, \
                   'registerdate': row.registerdate, 'id': row.id, 'annotation': strip_tags(row.annotation), \
                   'docdate': row.docdate, 'lang': row.lang, 'format': row.format, 'title': row.title, 'filesize': row.filesize,\
