@@ -151,29 +151,8 @@ class opdsScanner:
     def inpx_callback(self, inpx, inp, meta_data):          
                  
         name = "%s.%s"%(meta_data[inpx_parser.sFile],meta_data[inpx_parser.sExt])
-        # Get book annotation from fb2 file stored in zip-file
-        file = config.SOPDS_ROOT_LIB+'/'+inp+'.zip'
-        annotation=''
-
-        try:
-            z = zipfile.ZipFile(file, 'r', allowZip64=True)
-            bookfile = z.open(name)
-
-            try:
-                book_data = create_bookfile(bookfile, name)
-            except Exception as err:
-                book_data = None
-                self.logger.warning(name + ' Book parse error, skipping... (Error: %s)'%err)
-
-            if book_data:
-                annotation = book_data.description if book_data.description else ''
-                annotation = annotation.strip(strip_symbols) if isinstance(annotation, str) else annotation.decode('utf8').strip(strip_symbols)
-
-            bookfile.close()
-            z.close()
-        except zipfile.BadZipFile:
-            self.logger.warning('Error while read ZIP archive. File '+file+' corrupt.')
-        
+       
+        annotation='NotYet'
         lang=meta_data[inpx_parser.sLang].strip(strip_symbols)
         # get the language fullname, otherwise ISO-639-1 shortname
         lang = self.fullang.get(lang.upper(),lang)
@@ -182,7 +161,6 @@ class opdsScanner:
         # Find out series number 
         if meta_data[inpx_parser.sSerNo]:
             serno = meta_data[inpx_parser.sSerNo]
-#        serno=int(serno.strip())
             try:
         	    serno=int(re.sub(' ','',serno))
             except Exception as err:
@@ -278,7 +256,7 @@ class opdsScanner:
                             lang = self.fullang.get(lang.upper(),lang)
                         title = book_data.title.strip(strip_symbols) if book_data.title else n
                         annotation = book_data.description if book_data.description else ''
-                        annotation = annotation.strip(strip_symbols) if isinstance(annotation, str) else annotation.decode('utf8').strip(strip_symbols)
+                        annotation = annotation.strip(' \'\&\n-.#\\\`') if isinstance(annotation, str) else annotation.decode('utf8').strip(' \'\&\n-.#\\\`')
                         docdate = book_data.docdate if book_data.docdate else ''
 
                         book=opdsdb.addbook(name,rel_path,cat,e[1:],title,annotation,docdate,lang,file_size,archive)
@@ -312,4 +290,3 @@ class opdsScanner:
             except UnicodeEncodeError as err:
                 self.logger.warning(rel_path + ' - ' + name + ' Book UnicodeEncodeError error, skipping... (Error: %s)' % err)
                 self.bad_books += 1
-
