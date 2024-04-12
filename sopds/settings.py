@@ -23,7 +23,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'm4l1c#nq6*zs!c3ri4dg4(54_7bvrl5uintni6p20tijlaxv!x'
+try:
+    # open file with random secret key
+    with open("/sopds/secret.key","r") as f:
+        SECRET_KEY = f.read()
+except FileNotFoundError as e:
+    # use standard secret key
+    SECRET_KEY = 'm4l1c#nq6*zs!c3ri4dg4(54_7bvrl5uintni6p20tijlaxv!x'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -206,8 +212,8 @@ CONSTANCE_CONFIG = OrderedDict([
     ('SOPDS_DELETE_LOGICAL', (False,_('Logical deleting unavialable files'))),
 
     ('SOPDS_SCAN_SHED_MIN', ('0',_('sheduled minutes for sopds_scanner (cron syntax)'))),
-    ('SOPDS_SCAN_SHED_HOUR', ('0,12',_('sheduled hours for sopds_scanner (cron syntax)'))),
-    ('SOPDS_SCAN_SHED_DAY', ('*',_('sheduled day for sopds_scanner (cron syntax)'))),
+    ('SOPDS_SCAN_SHED_HOUR', ('03',_('sheduled hours for sopds_scanner (cron syntax)'))),
+    ('SOPDS_SCAN_SHED_DAY', ('10',_('sheduled day for sopds_scanner (cron syntax)'))),
     ('SOPDS_SCAN_SHED_DOW', ('*',_('sheduled day of weeks for sopds_scanner (cron syntax)'))),
 
     ('SOPDS_FB2TOEPUB', ('',_('Path to FB2-EPUB converter program'))),
