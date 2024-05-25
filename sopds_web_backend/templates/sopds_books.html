@@ -80,6 +80,12 @@
 				  {% endif %}
 			    </td>
 				<td width="140px" ><a href="https://omnireader.ru/#/reader?url=https://{{ request.META.HTTP_HOST }}{% url 'opds_catalog:download' b.id 0 %}" target="_blank"><b><u>{% trans "Read online" %}</u></b></a></td>
+			        <script>
+		                     var findlink = document.getElementById("ReadLink");
+                                     if (window.location.protocol != "https:") {
+		                         findlink.href = "https://omnireader.ru/#/reader?url=http://{{ request.META.HTTP_HOST }}{% url 'opds_catalog:download' b.id 0 %}";
+                                     }
+	                        </script>
 			</tr>
 			<tr>
               <td><b>{% trans "Download:" %}</b></td>
