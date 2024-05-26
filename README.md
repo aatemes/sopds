@@ -1,10 +1,11 @@
 Я не шарю в HTML, JS, Python и уж тем более в django.
 Так что прошу ногами не пинать.
 
+Что я смог сделать с [оригиналом sopds](https://github.com/mitshel/sopds), кроме как утащить у [@iAHTOH](https://github.com/iAHTOH) тёмную тему:
+
 ![Screenshot](https://github.com/ichbinkirgiz/sopds/blob/master/sopds_screenshot.png)
 
 
-Что я смог сделать с [оригиналом sopds](https://github.com/mitshel/sopds), кроме как утащить у [@iAHTOH](https://github.com/iAHTOH) тёмную тему:
 1. Русифицировал текст подсказки в строке поиска.
 2. Немного увеличил размер миниобложек. Клик по ней открывает полноразмерную обложку в новой вкладке браузера.
 3. Дополнил информацию о книге:
