@@ -79,7 +79,7 @@
 				    {% trans "Doubles for book:" %} <b> <a href="{% url "web:searchbooks" %}?searchtype=d&searchterms={{b.id}}">{{ b.title }} ( {{ b.doubles }} {% trans "itm." %} ) </b> </a>
 				  {% endif %}
 			    </td>
-				<td width="140px" ><a href="https://omnireader.ru/#/reader?url=https://{{ request.META.HTTP_HOST }}{% url 'opds_catalog:download' b.id 0 %}" target="_blank"><b><u>{% trans "Read online" %}</u></b></a></td>
+				<td width="140px" ><a id="ReadLink" href="https://omnireader.ru/#/reader?url=https://{{ request.META.HTTP_HOST }}{% url 'opds_catalog:download' b.id 0 %}" target="_blank"><b><u>{% trans "Read online" %}</u></b></a></td>
 			        <script>
 		                     var findlink = document.getElementById("ReadLink");
                                      if (window.location.protocol != "https:") {
