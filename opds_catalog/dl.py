@@ -361,7 +361,7 @@ def ConvertFB2(request, book_id, convert_type):
         full_path = os.path.join(path,zip_name)
             
     if config.SOPDS_TITLE_AS_FILENAME:
-        transname=utils.translit(book.title+'.'+book.format)
+        transname=utils.translit(book.title+'.'+book.format).replace("/","_")
     else:
         transname=utils.translit(book.filename)      
         
