@@ -256,7 +256,7 @@ class Command(BaseCommand):
             return
 
         authors = ', '.join([a['full_name'] for a in book.authors.values()])
-        response = ('<b>%(title)s</b>\n%(author)s\n<b>'+_("Annotation:")+'</b>%(annotation)s\n') % {'title': book.title, 'author': authors, 'annotation':book.annotation}
+        response = ('<b>%(title)s</b>\n%(author)s\n<b>'+_("Annotation:")+'</b>%(annotation)s\n') % {'title': book.title, 'author': authors, 'annotation':truncate(book.annotation, 3000)}
 
         buttons = [InlineKeyboardButton(book.format.upper(), callback_data='/getfileorig%s'%book_id)]
         if book.format not in settings.NOZIP_FORMATS:
